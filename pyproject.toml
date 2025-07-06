@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "aiosqlite>=0.21.0",
     "azure-identity>=1.23.0",
     "beautifulsoup4>=4.13.4",
     "databricks-langchain>=0.6.0",

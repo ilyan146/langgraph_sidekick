@@ -1642,6 +1642,7 @@ name = "langgraph-sidekick"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "aiosqlite" },
     { name = "azure-identity" },
     { name = "beautifulsoup4" },
     { name = "databricks-langchain" },
@@ -1668,6 +1669,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiosqlite", specifier = ">=0.21.0" },
     { name = "azure-identity", specifier = ">=1.23.0" },
     { name = "beautifulsoup4", specifier = ">=4.13.4" },
     { name = "databricks-langchain", specifier = ">=0.6.0" },
