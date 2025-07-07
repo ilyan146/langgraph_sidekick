@@ -5,16 +5,7 @@ from langgraph_sidekick.sidekick import SideKick
 async def setup():
     sidekick = SideKick()
     await sidekick.setup()
-    return sidekick
-
-
-# Run the sidekick instantiation before the UI
-# sidekick = asyncio.run(setup())
-
-
-def load_sidekick(sidekick):
-    print("Loading Sidekick...")
-    return sidekick
+    return sidekick, [{"role": "assistant", "content": "Sidekick agents initialized and ready! What can I help you with?"}], True
 
 
 async def process_message(sidekick, message, success_criteria, history):
@@ -41,7 +32,8 @@ async def reset():
 with gr.Blocks(theme=gr.themes.Default(primary_hue="emerald")) as ui:
     gr.Markdown("## Sidekick - Your Personal Co-Worker")
     sidekick = gr.State(delete_callback=free_resources)
-    # sidekick = gr.State(sidekick, delete_callback=free_resources)  # Initialize with the sidekick instance and set cleanup callback
+    # Add a loading state
+    is_initialized = gr.State(False)
 
     # Front-end
     with gr.Row():
@@ -49,17 +41,28 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue="emerald")) as ui:
 
     with gr.Group():
         with gr.Row():
-            message = gr.Textbox(show_label=False, placeholder="Your request to your sidekick")
+            message = gr.Textbox(show_label=False, placeholder="Your request to your sidekick", interactive=False)
         with gr.Row():
-            success_criteria = gr.Textbox(show_label=False, placeholder="What are the criterias for success?")
+            success_criteria = gr.Textbox(show_label=False, placeholder="What are the criterias for success?", interactive=False)
     with gr.Row():
-        reset_button = gr.Button("Reset", variant="stop")
-        go_button = gr.Button("Go", variant="primary")
+        reset_button = gr.Button("Reset", variant="stop", interactive=False)
+        go_button = gr.Button("Go", variant="primary", interactive=False)
 
     # Back-end Callbacks
     # Initially loads the setup and returns a sidekick
-    ui.load(setup, [], [sidekick])
-    # ui.load(load_sidekick, [sidekick], [sidekick])
+    # ui.load(setup, [], [sidekick])
+    ui.load(setup, [], [sidekick, chatbot, is_initialized])
+
+    # Enable UI components once initialized
+    def enable_ui(initialized):
+        return (
+            gr.update(interactive=initialized),
+            gr.update(interactive=initialized),
+            gr.update(interactive=initialized),
+            gr.update(interactive=initialized),
+        )
+
+    is_initialized.change(enable_ui, [is_initialized], [message, success_criteria, reset_button, go_button])
 
     message.submit(process_message, [sidekick, message, success_criteria, chatbot], [chatbot, sidekick])
     go_button.click(process_message, [sidekick, message, success_criteria, chatbot], [chatbot, sidekick])
