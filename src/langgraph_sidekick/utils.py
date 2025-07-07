@@ -1,8 +1,12 @@
 import os
 from dotenv import load_dotenv
-import requests
-import sendgrid
-from sendgrid.helpers.mail import Mail, Email, To, Content
+import requests  # type: ignore
+import sendgrid  # type: ignore
+from sendgrid.helpers.mail import Mail, Email, To, Content  # type: ignore
+
+import aiosqlite
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+import asyncio
 
 load_dotenv(override=True)
 
@@ -29,6 +33,20 @@ def send_email(body: str):
     mail = Mail(from_email, to_email, "SendGridEmail", content).get()
     response = sg.client.mail.send.post(request_body=mail)  # noqa
     return {"status": "success"}
+
+
+# database persistant memory
+db_path = "memory_db/sqlite_memory.db"
+
+
+async def setup_async_db():
+    async_conn = await aiosqlite.connect(db_path)
+    return async_conn
+
+
+# Singleton instantitation of the async connection and memory
+async_conn = asyncio.run(setup_async_db())
+sql_memory = AsyncSqliteSaver(async_conn)
 
 
 if __name__ == "__main__":

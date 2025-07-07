@@ -24,6 +24,7 @@ dependencies = [
     "playwright>=1.53.0",
     "pydantic>=2.11.7",
     "sendgrid>=6.12.4",
+    "wikipedia>=1.4.0",
 ]
 
 [build-system]
