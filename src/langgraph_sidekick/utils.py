@@ -3,13 +3,11 @@ from dotenv import load_dotenv
 import requests  # type: ignore
 import sendgrid  # type: ignore
 from sendgrid.helpers.mail import Mail, Email, To, Content  # type: ignore
-
 import aiosqlite
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
-import asyncio
+
 
 load_dotenv(override=True)
-
 
 pushover_token = os.getenv("PUSHOVER_TOKEN")
 pushover_user = os.getenv("PUSHOVER_USER")
@@ -23,7 +21,6 @@ def push(text: str):
 
 def send_email(body: str):
     """Send out an email with the given body"""
-
     sg = sendgrid.SendGridAPIClient(api_key=os.environ.get("SENDGRID_API_KEY"))
     from_email = Email("mohamed.ilyan@boskalis.com")
     # to_email = To("mohamed.ilyan@boskalis.com")
@@ -41,12 +38,12 @@ db_path = "memory_db/sqlite_memory.db"
 
 async def setup_async_db():
     async_conn = await aiosqlite.connect(db_path)
-    return async_conn
+    return AsyncSqliteSaver(async_conn)
 
 
-# Singleton instantitation of the async connection and memory
-async_conn = asyncio.run(setup_async_db())
-sql_memory = AsyncSqliteSaver(async_conn)
+# # Singleton instantitation of the async connection and memory
+# async_conn = asyncio.run(setup_async_db())
+# sql_memory = AsyncSqliteSaver(async_conn)
 
 
 if __name__ == "__main__":

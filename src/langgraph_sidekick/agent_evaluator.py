@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Any
 from databricks_langchain import ChatDatabricks  # type: ignore
-from langgraph_sidekick.sidekick import State
+from langgraph_sidekick.schema import State
 from langchain_core.messages import AIMessage, SystemMessage, HumanMessage
 
 
@@ -17,9 +17,10 @@ class AgentEvaluator:
     def __init__(self):
         self.evaluator_llm = None
 
-    def setup(self):
+    async def setup(self):
         llm = ChatDatabricks(endpoint="databricks-claude-3-7-sonnet", max_tokens=1000)
         self.evaluator_llm = llm.with_structured_output(EvaluatorOutput)
+        return self  # To make the agent class instance available
 
     def format_conversation(self, messages: list[Any]) -> str:
         convo = "Conversation history:\n\n"
@@ -51,7 +52,8 @@ class AgentEvaluator:
         Respond with your feedback, and decide if the success criteria is met by this response.
         Also, decide if more user input is required, either because the assistant has a question, needs clarification, or seems to be stuck and unable to answer without help.
 
-        If the Assistant says they have used the tool you should give the Assistant the benefit of the doubt if they say they've done something. But you should reject if you feel that more work should go into this.
+        The Assistant has access to a number of tools such for sending push notifications, sending emails, writing to file/
+        If the Assistant says they have used a tool you should give the Assistant the benefit of the doubt that it did do so. But you should reject if you feel that more work should go into this.
         """
 
         if state.feedback_on_work:

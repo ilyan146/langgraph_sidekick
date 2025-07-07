@@ -1,30 +1,32 @@
 import uuid
-from pydantic import BaseModel
-from typing import Annotated, Optional
+
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode
-from langgraph.graph.message import add_messages  # A reducer function
 from langgraph_sidekick.agent_worker import AgentWorker
 from langgraph_sidekick.agent_evaluator import AgentEvaluator
-from langgraph_sidekick.utils import sql_memory
-# from langgraph_sidekick.agent_evaluator import
 
-
-class State(BaseModel):
-    messages: Annotated[list, add_messages]
-    success_criteria: str
-    feedback_on_work: Optional[str]
-    success_criteria_met: bool
-    user_input_needed: bool
+# from langgraph_sidekick.utils import sql_memory
+from langgraph_sidekick.utils import setup_async_db
+from langgraph_sidekick.schema import State
 
 
 class SideKick:
     def __init__(self):
-        self.agent_worker = AgentWorker().setup()
-        self.agent_evaluator = AgentEvaluator().setup()
+        self.agent_worker = None
+        self.agent_evaluator = None
         self.graph = None
         self.sidekick_id = str(uuid.uuid4())
-        self.memory = sql_memory
+        self.memory = None
+
+    async def setup(self):
+        self.memory = await setup_async_db()
+
+        # Initialize the agents
+        self.agent_worker = await AgentWorker().setup()
+        self.agent_evaluator = await AgentEvaluator().setup()
+
+        # Build the graph
+        await self.build_graph()
 
     def agent_worker_router(self, state: State) -> str:
         """Route decision for tool calls or to evaluator"""
@@ -41,7 +43,7 @@ class SideKick:
         else:
             return "agent_worker"
 
-    def build_graph(self):
+    async def build_graph(self):
         # Set the graph
         graph_builder = StateGraph(State)
 
@@ -75,7 +77,7 @@ class SideKick:
 
         state = State(
             messages=[{"role": "user", "content": message}],
-            success_criteria=success_criteria,
+            success_criteria=success_criteria or "The answer should be clear and accurate.",
             feedback_on_work=None,  # to be set by the evaluator agent
             success_criteria_met=False,  # to start with its false
             user_input_needed=False,  # To start with its false
@@ -87,3 +89,10 @@ class SideKick:
         reply = {"role": "assistant", "content": result["messages"][-2].content}
         feedback = {"role": "assistant", "content": result["messages"][-1].content}
         return history + [user, reply, feedback]
+
+    def free_resources(self):
+        """Clean up resources"""
+        if self.agent_worker:
+            self.agent_worker.cleanup()
+        # Add any other cleanup here
+        print(f"Cleaned up resources for sidekick {self.sidekick_id}")

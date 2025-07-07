@@ -7,7 +7,7 @@ from langgraph_sidekick.agent_tools import get_agent_tools, get_playwright_tools
 
 from langchain_core.messages import SystemMessage
 import asyncio
-from langgraph_sidekick.sidekick import State
+from langgraph_sidekick.schema import State
 from datetime import datetime
 
 
@@ -26,7 +26,6 @@ class AgentWorker:
         """Setups the agent worker tools and graph and memory"""
 
         self.tools = await get_agent_tools()
-
         # Add playwright tools to the agent tools
         playwright_tools, self.browser, self.playwright = await get_playwright_tools()
         self.tools += playwright_tools
@@ -35,6 +34,8 @@ class AgentWorker:
             api_version="2024-12-01-preview", azure_ad_token_provider=AzureAIClient().token_provider, azure_deployment="gpt-4o"
         )
         self.llm_with_tools = llm.bind_tools(self.tools)
+
+        return self  # So that the instance of the agentworker with tools is available
 
         # await self.build_graph()
 
