@@ -10,7 +10,7 @@ async def setup():
 
 async def process_message(sidekick, message, success_criteria, history):
     result = await sidekick.run_superstep(message=message, success_criteria=success_criteria, history=history)
-    return result, sidekick  # Return the graph result and sidekick instannce for further processing
+    return result, sidekick, ""  # Return the graph result and sidekick instannce for further processing
 
 
 def free_resources(sidekick):
@@ -37,7 +37,7 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue="emerald")) as ui:
 
     # Front-end
     with gr.Row():
-        chatbot = gr.Chatbot(label="Sidekick", height=300, type="messages")
+        chatbot = gr.Chatbot(label="Sidekick", height=700, type="messages")
 
     with gr.Group():
         with gr.Row():
@@ -64,9 +64,9 @@ with gr.Blocks(theme=gr.themes.Default(primary_hue="emerald")) as ui:
 
     is_initialized.change(enable_ui, [is_initialized], [message, success_criteria, reset_button, go_button])
 
-    message.submit(process_message, [sidekick, message, success_criteria, chatbot], [chatbot, sidekick])
-    go_button.click(process_message, [sidekick, message, success_criteria, chatbot], [chatbot, sidekick])
-    success_criteria.submit(process_message, [sidekick, message, success_criteria, chatbot], [chatbot, sidekick])
+    message.submit(process_message, [sidekick, message, success_criteria, chatbot], [chatbot, sidekick, message])
+    go_button.click(process_message, [sidekick, message, success_criteria, chatbot], [chatbot, sidekick, message])
+    success_criteria.submit(process_message, [sidekick, message, success_criteria, chatbot], [chatbot, sidekick, message])
 
     reset_button.click(reset, [], [message, success_criteria, chatbot, sidekick])
 
