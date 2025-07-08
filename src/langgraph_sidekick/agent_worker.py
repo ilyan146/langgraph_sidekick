@@ -51,7 +51,7 @@ class AgentWorker:
         {state.success_criteria}
         You should reply either with a question for the user about this assignment, or with your final response.
         If you have a question for the user, you need to reply by clearly stating your question. 
-        An example Quenstion might be: Question: please clarify whether you want a summary or a detailed answer
+        An example Quenstion might be: please clarify whether you want a summary or a detailed answer.
 
         If you've finished, reply with the final answer, and don't ask a question; simply reply with the answer.
         """
@@ -65,7 +65,6 @@ class AgentWorker:
 
         # Add in the system message
         found_system_message = False
-        # messages = state["messages"]
         messages = state.messages
         for message in messages:
             if isinstance(message, SystemMessage):
