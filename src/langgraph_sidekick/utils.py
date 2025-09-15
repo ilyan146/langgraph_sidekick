@@ -5,6 +5,7 @@ import sendgrid  # type: ignore
 from sendgrid.helpers.mail import Mail, Email, To, Content  # type: ignore
 import aiosqlite
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from pathlib import Path
 
 
 load_dotenv(override=True)
@@ -21,15 +22,25 @@ def push(text: str):
 
 def send_email(body: str):
     """Send out an email with the given body"""
-    sg = sendgrid.SendGridAPIClient(api_key=os.environ.get("SENDGRID_API_KEY"))
-    from_email = Email("mohamed.ilyan@boskalis.com")
-    # to_email = To("mohamed.ilyan@boskalis.com")
-    to_email = To("ilyan146@gmail.com")
-    content = Content("text/plain", body)
 
-    mail = Mail(from_email, to_email, "SendGridEmail", content).get()
-    response = sg.client.mail.send.post(request_body=mail)  # noqa
-    return {"status": "success"}
+    try:
+        sg = sendgrid.SendGridAPIClient(api_key=os.environ.get("SENDGRID_API_KEY"))
+        from_email = Email("mohamed.ilyan@boskalis.com")
+        # to_email = To("mohamed.ilyan@boskalis.com")
+        to_email = To("ilyan146@gmail.com")
+        content = Content("text/plain", body)
+
+        mail = Mail(from_email, to_email, "SendGridEmail", content).get()
+        response = sg.client.mail.send.post(request_body=mail)  # noqa
+
+        print(response.status_code)
+        if response.status_code == 202:
+            return {"status": "success"}
+        else:
+            return {"status": "error", "message": f"SendGrid returned status code: {response.status_code}"}
+
+    except Exception as e:
+        return {"status": "error", "message": f"Failed to send email: {str(e)}"}
 
 
 # database persistant memory
@@ -37,11 +48,16 @@ db_path = "memory_db/sqlite_memory.db"
 
 
 async def setup_async_db():
+    # Create the directory if it doesn't exist
+    mem_dir_path = Path(db_path).parent
+    print(mem_dir_path)
+    mem_dir_path.mkdir(parents=True, exist_ok=True)
+
     async_conn = await aiosqlite.connect(db_path)
     return AsyncSqliteSaver(async_conn)
 
 
-# # Singleton instantitation of the async connection and memory
+# # # Singleton instantitation of the async connection and memory
 # async_conn = asyncio.run(setup_async_db())
 # sql_memory = AsyncSqliteSaver(async_conn)
 

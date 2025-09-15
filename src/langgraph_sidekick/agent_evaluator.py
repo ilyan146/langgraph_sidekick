@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Any
-from databricks_langchain import ChatDatabricks  # type: ignore
+from langchain_openai import AzureChatOpenAI
+from langgraph_sidekick.client import AzureAIClient
+
 from langgraph_sidekick.schema import State
 from langchain_core.messages import AIMessage, SystemMessage, HumanMessage
 
@@ -18,7 +20,10 @@ class AgentEvaluator:
         self.evaluator_llm = None
 
     async def setup(self):
-        llm = ChatDatabricks(endpoint="databricks-claude-3-7-sonnet", max_tokens=1000)
+        # llm = ChatDatabricks(endpoint="databricks-claude-3-7-sonnet", max_tokens=1000)
+        llm = AzureChatOpenAI(
+            api_version="2024-12-01-preview", azure_ad_token_provider=AzureAIClient().token_provider, azure_deployment="gpt-4o"
+        )
         self.evaluator_llm = llm.with_structured_output(EvaluatorOutput)
         return self  # To make the agent class instance available
 

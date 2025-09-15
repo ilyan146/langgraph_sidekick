@@ -23,7 +23,7 @@ async def get_playwright_tools() -> tuple[list, Browser, Playwright]:
 
 
 def get_file_tools():
-    toolkit = FileManagementToolkit(root_dir="src/langgraph_sidekick/file_storage")
+    toolkit = FileManagementToolkit(root_dir="file_storage")
     return toolkit.get_tools()
 
 

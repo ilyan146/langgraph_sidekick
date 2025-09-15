@@ -31,11 +31,11 @@ class AgentWorker:
         self.tools += playwright_tools
 
         llm = AzureChatOpenAI(
-            api_version="2024-12-01-preview", azure_ad_token_provider=AzureAIClient().token_provider, azure_deployment="gpt-4o"
+            api_version="2024-12-01-preview", azure_ad_token_provider=AzureAIClient().token_provider, azure_deployment="gpt-4.1"
         )
         self.llm_with_tools = llm.bind_tools(self.tools)
 
-        return self  # So that the instance of the agentworker with tools is available
+        return self  # So that the instance of the agent worker with tools is available
 
         # await self.build_graph()
 
